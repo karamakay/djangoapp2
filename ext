@@ -1,0 +1,72 @@
+Ext.application({
+    name: 'MyApp',
+    launch: function() {
+        Ext.Ajax.request({
+            url: '/pdf/top3',
+            method: 'GET',
+            success: function(response) {
+                var pdfList = Ext.decode(response.responseText);
+
+                var items = [];
+                Ext.Array.each(pdfList, function(pdf) {
+                    items.push({
+                        xtype: 'button',
+                        text: pdf.fileName,
+                        handler: function() {
+                            showPdf(pdf);
+                        }
+                    });
+                });
+
+                Ext.create('Ext.panel.Panel', {
+                    title: 'Top 3 PDF List',
+                    width: 400,
+                    renderTo: Ext.getBody(),
+                    items: items
+                });
+            },
+            failure: function(response) {
+                Ext.Msg.alert('Error', 'Failed to fetch PDF list.');
+            }
+        });
+
+        Ext.Ajax.request({
+            url: '/pdf/all',
+            method: 'GET',
+            success: function(response) {
+                var pdfList = Ext.decode(response.responseText);
+
+                var dropdownItems = [];
+                Ext.Array.each(pdfList, function(pdf) {
+                    dropdownItems.push({
+                        text: pdf.fileName,
+                        handler: function() {
+                            showPdf(pdf);
+                        }
+                    });
+                });
+
+                Ext.create('Ext.button.Split', {
+                    text: 'Select PDF',
+                    menu: {
+                        items: dropdownItems
+                    }
+                }).render(Ext.getBody());
+            },
+            failure: function(response) {
+                Ext.Msg.alert('Error', 'Failed to fetch PDF list.');
+            }
+        });
+
+        function showPdf(pdf) {
+            Ext.create('Ext.window.Window', {
+                title: pdf.fileName,
+                width: 600,
+                height: 400,
+                html: '<embed src="' + pdf.filePath + '" type="application/pdf" width="100%" height="100%">',
+                maximizable: true,
+                modal: true
+            }).show();
+        }
+    }
+});
