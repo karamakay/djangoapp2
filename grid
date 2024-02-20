@@ -1,0 +1,76 @@
+Ext.create('Ext.grid.Panel', {
+            title: 'PDFs',
+            width: 800,
+            height: 600,
+            renderTo: Ext.getBody(),
+            store: pdfStore,
+            columns: [
+                { text: 'ID', dataIndex: 'id' },
+                { text: 'File Name', dataIndex: 'fileName', flex: 1 },
+                {
+                    text: 'Delete',
+                    xtype: 'actioncolumn',
+                    width: 50,
+                    items: [{
+                        iconCls: 'x-fa fa-trash',
+                        tooltip: 'Delete',
+                        handler: function(grid, rowIndex, colIndex) {
+                            var rec = grid.getStore().getAt(rowIndex);
+                            Ext.Msg.confirm('Delete', 'Are you sure you want to delete ' + rec.get('fileName') + '?', function(btn) {
+                                if (btn === 'yes') {
+                                    Ext.Ajax.request({
+                                        url: '/pdf/delete/' + rec.get('id'),
+                                        method: 'DELETE',
+                                        success: function(response) {
+                                            Ext.Msg.alert('Success', 'PDF deleted successfully');
+                                            pdfStore.reload();
+                                        },
+                                        failure: function(response) {
+                                            Ext.Msg.alert('Error', 'Failed to delete PDF');
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    }]
+                }
+            ]
+        });
+
+        Ext.create('Ext.form.Panel', {
+            title: 'Add PDF',
+            width: 400,
+            height: 200,
+            renderTo: Ext.getBody(),
+            bodyPadding: 10,
+            items: [{
+                xtype: 'textfield',
+                fieldLabel: 'File Name',
+                name: 'fileName'
+            }, {
+                xtype: 'textfield',
+                fieldLabel: 'File Path',
+                name: 'filePath'
+            }, {
+                xtype: 'button',
+                text: 'Add',
+                handler: function() {
+                    var form = this.up('form').getForm();
+                    if (form.isValid()) {
+                        form.submit({
+                            url: '/pdf/add',
+                            method: 'POST',
+                            success: function(form, action) {
+                                Ext.Msg.alert('Success', 'PDF added successfully');
+                                pdfStore.reload();
+                            },
+                            failure: function(form, action) {
+                                Ext.Msg.alert('Failed', 'Failed to add PDF');
+                            }
+                        });
+                    }
+                }
+            }]
+        });
+    }
+});
